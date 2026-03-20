@@ -1,7 +1,8 @@
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
-import rehypeSlug from 'rehype-slug'
+// import rehypeSlug from 'rehype-slug'
+import GithubSlugger from 'github-slugger'
 import rehypeRaw from 'rehype-raw'
 import { readdir, readFile } from 'node:fs/promises'
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
@@ -9,6 +10,9 @@ import matter from 'gray-matter'
 import remarkGfm from 'remark-gfm'
 import { extractFlatToc } from './toc.js'
 import { sanitizeHastNode, type HastNode } from './hast.js'
+import {toString} from "hast-util-to-string"
+import { headingRank } from 'hast-util-heading-rank'
+import { visit } from "unist-util-visit"
 
 type MdcNode = {
     type?: string
@@ -109,6 +113,18 @@ function compareTagSequences(hastTags: string[], mdcTags: string[]) {
     }
 }
 
+function addHeadIdSlug(tree) {
+    const slugger = new GithubSlugger()
+
+    visit(tree, 'element', (node) => {
+        if (headingRank(node) && !node.properties.id) {
+            node.properties.id = slugger.slug(toString(node))
+        }
+    })
+
+    return tree
+}
+
 async function compareMarkdownAst(file: string, md: string) {
     const { content, data } = matter(md)
     const mdProcessor = unified()
@@ -118,10 +134,11 @@ async function compareMarkdownAst(file: string, md: string) {
     const hastProcessor = mdProcessor()
         .use(remarkRehype, { allowDangerousHtml: true })
         .use(rehypeRaw)
-        .use(rehypeSlug)
+        // .use(rehypeSlug)
 
     const mdast = mdProcessor().parse(content)
-    const hast = removeEmptyHastNodes(hastProcessor.runSync(mdast)) as HastNode
+    const hast = addHeadIdSlug(removeEmptyHastNodes(hastProcessor.runSync(mdast))) as HastNode
+    // const hast = removeEmptyHastNodes(hastProcessor.runSync(mdast)) as HastNode
     const tocResult = { title: '', links: extractFlatToc(content) }
     const mdcResult = await parseMarkdown(md)
     // console.log(mdcResult)
@@ -162,7 +179,7 @@ async function main() {
 
         const content = await readFile(`./examples/${file}`, 'utf-8')
         const result = await compareMarkdownAst(file, content)
-        console.log(result)
+        console.dir(result, { depth: null })
     }
 }
 

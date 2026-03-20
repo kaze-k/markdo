@@ -20,6 +20,12 @@ importers:
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      hast-util-heading-rank:
+        specifier: ^3.0.0
+        version: 3.0.0
+      hast-util-to-string:
+        specifier: ^3.0.1
+        version: 3.0.1
       rehype-raw:
         specifier: ^7.0.0
         version: 7.0.0
@@ -50,6 +56,9 @@ importers:
       unified:
         specifier: ^11.0.5
         version: 11.0.5
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
 
 packages:
 
