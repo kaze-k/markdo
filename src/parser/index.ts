@@ -27,9 +27,9 @@ interface TocNode {
     text: string
 }
 
-const slugger = new GithubSlugger()
-
 function addHeadIdSlug(tree: Root): Root {
+  const slugger = new GithubSlugger()
+
     visit(tree, 'element', (node) => {
         if (headingRank(node) && !node.properties.id) {
             node.properties.id = slugger.slug(toString(node))
@@ -96,6 +96,8 @@ function compileHast(content: string): HastNode {
 }
 
 function extractFlatToc(content: string): TocNode[] {
+  const slugger = new GithubSlugger()
+
   return mdProcessor()
       .use(extractToc, { flatten: true })
       .processSync(content).result
